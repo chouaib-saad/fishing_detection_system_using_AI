@@ -1,53 +1,69 @@
 import sys
 import io
+import os
+import pandas as pd
+import numpy as np
+import joblib
+import sklearn
+from flask import Flask, render_template, request, jsonify
+from sklearn.ensemble import RandomForestClassifier
+from utils.feature_extractor import extract_features
+
+# Fix encoding
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
-"""
-Phishing Detection System - Professional Edition
-Version 2.0.0
-"""
-from flask import Flask, render_template, request, jsonify
-import joblib
-import pandas as pd
-import os
-import sklearn
-from utils.feature_extractor import extract_features
-
-# Debug: Print versions
-print(f"sklearn version: {sklearn.__version__}")
-print(f"pandas version: {pd.__version__}")
-
 app = Flask(__name__)
 
-# Build absolute path to the model file
+# Paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "model", "phishing_model.pkl")
+DATA_PATH = os.path.join(BASE_DIR, "sample_phishing_data.csv")
 
-# Load model
+# Global model variable
 model = None
-try:
-    print(f"[INFO] Looking for model at: {MODEL_PATH}")
-    model = joblib.load(MODEL_PATH)
-    print("✅ Machine Learning Model loaded successfully!")
-    print("   Running in ML mode")
-except Exception as e:
-    model = None
-    print(f"⚠️ Model not found - running in heuristic mode!")
-    print(f"   Error: {e}")
-    # Debug: List context to help on Vercel
+
+def train_fallback_model():
+    """Trains a model on the fly if loading fails (Vercel compatibility fix)"""
+    print("🔄 Starting fallback training...")
     try:
-        print(f"   Current Directory: {os.getcwd()}")
-        print(f"   Base Directory: {BASE_DIR}")
-        print(f"   Listing Base Directory:")
-        for f in os.listdir(BASE_DIR):
-            print(f"    - {f}")
-        if os.path.exists(os.path.join(BASE_DIR, "model")):
-             print(f"   Listing Model Directory:")
-             for f in os.listdir(os.path.join(BASE_DIR, "model")):
-                 print(f"    - {f}")
-    except Exception as d_e:
-        print(f"   Debug Error: {d_e}")
+        # Load data
+        if not os.path.exists(DATA_PATH):
+            print("❌ Training data not found!")
+            return None
+            
+        df = pd.read_csv(DATA_PATH)
+        
+        # Features needed
+        feature_cols = ["url_length", "has_ip", "has_at_symbol", "has_dash", "is_https", "subdomain_count"]
+        
+        # Train basic model
+        X = df[feature_cols]
+        y = df["label"]
+        
+        clf = RandomForestClassifier(n_estimators=50, max_depth=10, random_state=42)
+        clf.fit(X, y)
+        
+        print("✅ Fallback model trained successfully!")
+        return clf
+    except Exception as e:
+        print(f"❌ Fallback training failed: {e}")
+        return None
+
+# Try to load model, otherwise train
+try:
+    print(f"📂 Loading model from: {MODEL_PATH}")
+    model = joblib.load(MODEL_PATH)
+    print("✅ Model loaded from file!")
+except Exception as e:
+    print(f"⚠️ Load failed ({e}). Attempting fallback training...")
+    model = train_fallback_model()
+
+# Final check
+if model:
+    print("🚀 System Online: ML Mode")
+else:
+    print("⚠️ System Online: Heuristic Mode (Limited)")
 
 @app.route("/")
 def home():
@@ -55,80 +71,62 @@ def home():
 
 @app.route("/check", methods=["POST"])
 def check_url():
-    url = request.form.get("url", "").strip()
-    
+    url = request.form.get("url", "")
     if not url:
-        return jsonify({"error": "No URL provided"})
-    
-    # Extract features
-    features_dict = extract_features(url)
-    
-    # Convert to DataFrame for model prediction
-    features_df = pd.DataFrame([features_dict])
-    
-    # Ensure we have the right features in the right order
-    required_features = ["url_length", "has_ip", "has_at_symbol", 
-                         "has_dash", "is_https", "subdomain_count"]
-    
-    # Add missing features with default values
-    for feature in required_features:
-        if feature not in features_df.columns:
-            features_df[feature] = 0
-    
-    # Reorder columns
-    features_df = features_df[required_features]
-    
-    # Make prediction
-    if model is not None:
-        try:
-            prediction = model.predict(features_df)[0]
-            result = "PHISHING DETECTED" if prediction == 1 else "SAFE"
-            
-            # Get confidence score
-            if hasattr(model, "predict_proba"):
-                proba = model.predict_proba(features_df)[0]
-                confidence = proba[1] if prediction == 1 else proba[0]
-            else:
-                confidence = 0.85 if prediction == 1 else 0.15
-        except Exception as e:
-            import traceback
-            error_details = traceback.format_exc()
-            print(f"[ERROR] Prediction failed: {e}")
-            print(error_details)
-            # Log to file for debugging
-            with open("error_log.txt", "a", encoding="utf-8") as f:
-                f.write(f"\n=== Error at {pd.Timestamp.now()} ===\n")
-                f.write(error_details)
-            result = "ERROR in ML prediction"
-            confidence = 0.5
-    else:
-        # Heuristic mode
-        if features_dict.get("has_ip", False) or features_dict.get("has_at_symbol", False):
-            result = "SUSPICIOUS (Heuristic)"
-            confidence = 0.7
-        elif features_dict.get("has_dash", False) and features_dict.get("subdomain_count", 0) > 2:
-            result = "SUSPICIOUS (Heuristic)"
-            confidence = 0.6
-        else:
-            result = "LIKELY SAFE (Heuristic)"
-            confidence = 0.3
-    
-    return jsonify({
-        "url": url,
-        "result": result,
-        "confidence": float(confidence),
-        "features": features_dict,
-        "mode": "ML" if model is not None else "Heuristic"
-    })
+        return jsonify({"error": "No URL provided"}), 400
 
-@app.route("/api/health")
-def health_check():
-    return jsonify({
-        "status": "healthy",
-        "model_loaded": model is not None,
-        "mode": "ML" if model is not None else "Heuristic"
-    })
+    try:
+        # Extract features
+        features_dict = extract_features(url)
+        
+        # Prepare for prediction
+        feature_cols = ["url_length", "has_ip", "has_at_symbol", "has_dash", "is_https", "subdomain_count"]
+        features_df = pd.DataFrame([features_dict])
+        
+        # Ensure columns exist
+        for col in feature_cols:
+            if col not in features_df.columns:
+                features_df[col] = 0
+        
+        # Reorder
+        X_pred = features_df[feature_cols]
+
+        if model:
+            # ML Prediction
+            prob = model.predict_proba(X_pred)[0][1] # Probability of phishing
+            prediction = "PHISHING" if prob > 0.5 else "SAFE"
+            mode = "ML"
+            
+            # Confidence logic
+            confidence = prob if prediction == "PHISHING" else (1 - prob)
+            
+        else:
+            # Heuristic Fallback
+            mode = "Heuristic"
+            score = 0
+            if features_dict.get('has_ip', 0): score += 30
+            if features_dict.get('url_length', 0) > 75: score += 20
+            if features_dict.get('has_at_symbol', 0): score += 20
+            
+            if score > 40:
+                prediction = "PHISHING"
+                confidence = 0.8
+            else:
+                prediction = "SAFE"
+                confidence = 0.7
+
+        return jsonify({
+            "url": url,
+            "result": prediction,
+            "confidence": float(confidence),
+            "mode": mode,
+            "features": features_dict
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e), "result": "ERROR", "confidence": 0}), 500
 
 if __name__ == "__main__":
-    print("[INFO] Starting Phishing Detection System on http://127.0.0.1:5001")
-    app.run(debug=True, port=5001)
+    app.run(host="0.0.0.0", port=5001, debug=True)
