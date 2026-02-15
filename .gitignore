@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+.DS_Store
+error_log.txt
+.vscode/
+.idea/
+model/phishing_model.pkl
+# Note: Usually binary models are ignored or tracked with LFS. 
+# Since this one is small (~1MB), I'll allow it for easier cloning, but usually large models are ignored.
+# For now, I will NOT ignore the model file as requested by the user flow (self-contained project).

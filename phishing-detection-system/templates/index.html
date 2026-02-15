@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Axulo-Inc Phishing Detection System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔒 Phishing Website Detection System</h1>
+            <p class="subtitle">Powered by Machine Learning | Axulo-Inc Cybersecurity Project</p>
+            <p class="cert-badge">IBM Cybersecurity Essentials Certified</p>
+        </header>
+        
+        <div class="card">
+            <h2>🔍 Check a URL</h2>
+            <form id="checkForm">
+                <input type="url" id="urlInput" placeholder="Enter URL to check (e.g., https://example.com)" required>
+                <button type="submit">Analyze URL</button>
+            </form>
+            
+            <div id="result" class="hidden">
+                <h3>Analysis Result</h3>
+                <div id="resultContent"></div>
+            </div>
+        </div>
+        
+        <div class="info">
+            <h3>📊 How It Works</h3>
+            <ul>
+                <li>Uses machine learning to detect phishing patterns</li>
+                <li>Analyzes URL structure and domain features</li>
+                <li>Real-time classification with confidence score</li>
+                <li>Built by Thabang Alfred Motsoahae after IBM Cybersecurity course</li>
+            </ul>
+            
+            <div class="links">
+                <a href="https://github.com/Axulo-Inc" target="_blank">GitHub Repo</a>
+                <a href="https://coursera.org/verify/98MLTLTZSE15" target="_blank">IBM Certificate</a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

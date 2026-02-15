@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetShield TN | Professional Link Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-wrapper">
+        <nav class="navbar">
+            <div class="logo">
+                <svg class="logo-icon" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" fill="url(#logo-gradient)"
+                        stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M12 8V16" stroke="var(--bg-primary)" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M8 12H16" stroke="var(--bg-primary)" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <defs>
+                        <linearGradient id="logo-gradient" x1="4" y1="2" x2="20" y2="22" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="var(--accent-blue)" />
+                            <stop offset="1" stop-color="var(--accent-green)" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <span>NetShield TN</span>
+            </div>
+            <div class="nav-controls">
+                <div class="lang-switch">
+                    <button class="lang-btn active" data-lang="en">EN</button>
+                    <button class="lang-btn" data-lang="tn">TN</button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <header class="hero-section">
+                <h1 data-i18n="heroTitle">Advanced Threat Detection</h1>
+                <p class="subtitle" data-i18n="heroSubtitle">Enterprise-grade phishing analysis powered by machine
+                    learning.</p>
+            </header>
+
+            <div class="analysis-panel">
+                <div class="panel-header">
+                    <h2 data-i18n="analyzeUrl">Analyze URL</h2>
+                </div>
+
+                <form id="checkForm" class="analysis-form">
+                    <div class="input-group">
+                        <input type="url" id="urlInput" placeholder="https://example.com" required autocomplete="off">
+                        <button type="submit" class="btn-primary">
+                            <span data-i18n="analyzeBtn">Scan URL</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div id="result" class="result-container hidden">
+                    <div class="result-header">
+                        <h3 data-i18n="analysisReport">Analysis Report</h3>
+                        <span id="timestamp" class="timestamp"></span>
+                    </div>
+                    <div id="resultContent"></div>
+                </div>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3 data-i18n="howItWorks">How It Works</h3>
+                    <ul class="feature-list">
+                        <li data-i18n="feature1">Real-time heuristic & ML analysis</li>
+                        <li data-i18n="feature2">Domain reputation checking</li>
+                        <li data-i18n="feature3">Pattern matching engine</li>
+                    </ul>
+                </div>
+                <div class="info-card">
+                    <h3 data-i18n="capabilities">Capabilities</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-value">96.4%</span>
+                            <span class="stat-label" data-i18n="accuracy">Accuracy</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">
+                                100ms
+                                    <span class="stat-label" data-i18n="latency">Latency</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2026 NetShield TN. <span data-i18n="footerRights">All rights reserved.</span></p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>
