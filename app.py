@@ -11,7 +11,12 @@ from flask import Flask, render_template, request, jsonify
 import joblib
 import pandas as pd
 import os
+import sklearn
 from utils.feature_extractor import extract_features
+
+# Debug: Print versions
+print(f"sklearn version: {sklearn.__version__}")
+print(f"pandas version: {pd.__version__}")
 
 app = Flask(__name__)
 
@@ -24,12 +29,25 @@ model = None
 try:
     print(f"[INFO] Looking for model at: {MODEL_PATH}")
     model = joblib.load(MODEL_PATH)
-    print("[OK] Machine Learning Model loaded successfully!")
-    print("     Running in ML mode")
+    print("✅ Machine Learning Model loaded successfully!")
+    print("   Running in ML mode")
 except Exception as e:
     model = None
-    print("[WARN] Model not found - running in heuristic mode!")
-    print(f"       Error: {e}")
+    print(f"⚠️ Model not found - running in heuristic mode!")
+    print(f"   Error: {e}")
+    # Debug: List context to help on Vercel
+    try:
+        print(f"   Current Directory: {os.getcwd()}")
+        print(f"   Base Directory: {BASE_DIR}")
+        print(f"   Listing Base Directory:")
+        for f in os.listdir(BASE_DIR):
+            print(f"    - {f}")
+        if os.path.exists(os.path.join(BASE_DIR, "model")):
+             print(f"   Listing Model Directory:")
+             for f in os.listdir(os.path.join(BASE_DIR, "model")):
+                 print(f"    - {f}")
+    except Exception as d_e:
+        print(f"   Debug Error: {d_e}")
 
 @app.route("/")
 def home():

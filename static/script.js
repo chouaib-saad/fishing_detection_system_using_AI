@@ -29,7 +29,7 @@ const translations = {
     tn: {
         heroTitle: "Kachf el Rawabit el Khbitha",
         heroSubtitle: "verifi link mta3k bel dhake2 el estiba7i",
-        analyzeUrl: "7allel el Lien",
+        analyzeUrl: "Nchouflek el link sahbi ?",
         analyzeBtn: "sami besmelleh !",
         analysisReport: "Taqrir el Tahlil",
         howItWorks: "Kifach Yemchi?",
